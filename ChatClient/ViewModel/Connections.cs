@@ -10,6 +10,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Xml.Linq;
 
 namespace ChatClient.ViewModel
 {
@@ -68,6 +69,9 @@ namespace ChatClient.ViewModel
                     {
                         Application.Current.Dispatcher.Invoke(() =>
                         {
+                            if (message.Ouner.Contains("подключился к чату") && message.Ouner.Contains(MainWindow.UserName))
+                                return;
+
                             Messages.Add(message);
                         });
                     }                    
