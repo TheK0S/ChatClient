@@ -9,7 +9,7 @@ namespace ChatClient.Model
     public class Message
     {
         public string Ouner { get; set; }
-        public DateTime Date { get; set; }
+        public string Date { get; set; }
         public string Text { get; set; }
     }
 }
