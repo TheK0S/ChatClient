@@ -1,4 +1,5 @@
-﻿using ChatClient.ViewModel;
+﻿using ChatClient.Model;
+using ChatClient.ViewModel;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -37,6 +38,11 @@ namespace ChatClient
             isConnected = false;
         }
 
+        private void Messeges_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+
         private void close_Click(object sender, RoutedEventArgs e)
         {
             this.Close();
@@ -54,11 +60,11 @@ namespace ChatClient
 
         private async void btnConnectDisconnect_Click(object sender, RoutedEventArgs e)
         {
-            if (!isConnected) await ConnectUser();
+            if (!isConnected) ConnectUser();
             else DisconnectUser();
         }
 
-        private async Task ConnectUser()
+        private void ConnectUser()
         {
             if (isConnected) return;
             else if (name.Text?.Length < 1)
@@ -68,8 +74,9 @@ namespace ChatClient
             }
 
             UserName = name.Text;
-            await connection.Connect();
+            connection.Connect();            
             StartReciveMessage();
+            connection.SendName(UserName);
             isConnected = true;
 
             ButtonVisualChanged();
@@ -112,13 +119,13 @@ namespace ChatClient
             DisconnectUser();
         }
 
-        private void OnScrollChanged(object sender, ScrollChangedEventArgs e)
+        private void Messages_CollectionChanged(object sender, ScrollChangedEventArgs e)
         {
             if (e.VerticalOffset + e.ViewportHeight >= e.ExtentHeight - 10) // Небольшая погрешность 10, чтобы учесть округления
             {
                 int listCount = list.Items.Count;
 
-                if(listCount > 2)
+                if(listCount > 1)
                     list.ScrollIntoView(list.Items[listCount - 1]);
             }
         }
@@ -128,6 +135,18 @@ namespace ChatClient
             name.IsEnabled = isConnected? false : true;
             btnConnectDisconnect.Content = isConnected ? "To Disconnect" : "To Connect";
             btnConnectDisconnect.Background = isConnected?  new SolidColorBrush(Colors.Lime) : new SolidColorBrush(Colors.Red);          
+        }
+
+        private void OnScrollChanged(object sender, ScrollChangedEventArgs e)
+        {
+            if (e.ExtentHeightChange == 0) return;
+
+            if (e.VerticalOffset + e.ViewportHeight < e.ExtentHeight) return;
+
+            int listCount = list.Items.Count;
+
+            if(listCount > 1)
+                list.ScrollIntoView(list.Items[listCount - 1]);
         }
     }
 }

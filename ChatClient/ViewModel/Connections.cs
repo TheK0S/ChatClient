@@ -24,14 +24,14 @@ namespace ChatClient.ViewModel
         public Socket CurrentSocket { get; set; }
 
         public Connections()
-        {
-            CurrentSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+        {            
             serverEndPoint = new IPEndPoint(IPAddress.Parse(serverIp), serverPort);
             Messeges = new ObservableCollection<Message>();
         }
 
         public async Task Connect()
         {
+            CurrentSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             await CurrentSocket.ConnectAsync(serverIp, serverPort);
         }
 
@@ -41,12 +41,21 @@ namespace ChatClient.ViewModel
             CurrentSocket.Close();
         }
 
+        public void SendName(string ownerName)
+        {
+            Message messageObj = new Message { Date = DateTime.Now.ToLongTimeString(), Ouner = ownerName, Text = "подключился к чату" };
+            string jsonMessage = JsonConvert.SerializeObject(messageObj);
+            byte[] messageBytes = Encoding.UTF8.GetBytes(jsonMessage);
+
+            CurrentSocket.SendTo(messageBytes, SocketFlags.None, serverEndPoint);
+        }
+
         public async Task SendMessage(string message, string ownerName)
         {
             Message messageObj = new Message { Date = DateTime.Now.ToLongTimeString(), Ouner = ownerName, Text = message };
             string jsonMessage = JsonConvert.SerializeObject(messageObj);
             byte[] messageBytes = Encoding.UTF8.GetBytes(jsonMessage);
-
+            
             await CurrentSocket.SendToAsync(messageBytes, SocketFlags.None, serverEndPoint);
         }
 
