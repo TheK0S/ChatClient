@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:ChatClient"
         xmlns:convert="clr-namespace:ChatClient.ViewModel"
         mc:Ignorable="d"
-        Title="MainWindow" Height="600" Width="600" WindowStyle="None" ResizeMode="CanMinimize" Closing="Window_Closing">
+        Title="MainWindow" Height="600" Width="600" WindowStyle="None" ResizeMode="CanMinimize">
     <Window.Resources>
         <convert:StringToMarginConverter x:Key="StringToMarginConverter"/>
         

@@ -23,7 +23,7 @@ namespace ChatClient
     /// </summary>
     public partial class MainWindow : Window
     {
-        public static string UserName; 
+        public static string? UserName; 
         bool isConnected;
         Connections connection;
 
@@ -45,6 +45,7 @@ namespace ChatClient
 
         private void close_Click(object sender, RoutedEventArgs e)
         {
+            DisconnectUser();
             this.Close();
         }
 
@@ -58,7 +59,7 @@ namespace ChatClient
             this.DragMove();
         }
 
-        private async void btnConnectDisconnect_Click(object sender, RoutedEventArgs e)
+        private void btnConnectDisconnect_Click(object sender, RoutedEventArgs e)
         {
             if (!isConnected) ConnectUser();
             else DisconnectUser();
@@ -67,16 +68,16 @@ namespace ChatClient
         private void ConnectUser()
         {
             if (isConnected) return;
-            else if (name.Text?.Length < 1)
+            else if (string.IsNullOrWhiteSpace(name.Text))
             {
-                MessageBox.Show("Введите имя");
+                MessageBox.Show("Введите имя пользователя");
                 return;
             }
 
             UserName = name.Text;
             connection.Connect();            
             StartReciveMessage();
-            connection.SendName(UserName);
+            connection.SendName(UserName?? string.Empty);
             isConnected = true;
 
             ButtonVisualChanged();
@@ -100,34 +101,15 @@ namespace ChatClient
 
         private async void tbMessage_KeyDown(object sender, KeyEventArgs e)
         {
-            if(e.Key == Key.Enter)
+            if (e.Key != Key.Enter) return;
+            if (connection is null || string.IsNullOrWhiteSpace(tbMessage.Text)) return;
+
+            await Application.Current.Dispatcher.InvokeAsync(async () =>
             {
-                if(connection != null)
-                {
-                    await Application.Current.Dispatcher.InvokeAsync(async () =>
-                    {
-                        await connection.SendMessage(tbMessage.Text, name.Text);
-                    });
+                await connection.SendMessage(tbMessage.Text, name.Text);
+            });
 
-                    tbMessage.Text = string.Empty;
-                }
-            }
-        }
-
-        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
-        {
-            DisconnectUser();
-        }
-
-        private void Messages_CollectionChanged(object sender, ScrollChangedEventArgs e)
-        {
-            if (e.VerticalOffset + e.ViewportHeight >= e.ExtentHeight - 10) // Небольшая погрешность 10, чтобы учесть округления
-            {
-                int listCount = list.Items.Count;
-
-                if(listCount > 1)
-                    list.ScrollIntoView(list.Items[listCount - 1]);
-            }
+            tbMessage.Text = string.Empty;
         }
 
         private void ButtonVisualChanged()
@@ -141,7 +123,7 @@ namespace ChatClient
         {
             if (e.ExtentHeightChange == 0) return;
 
-            if (e.VerticalOffset + e.ViewportHeight < e.ExtentHeight) return;
+            if (e.VerticalOffset + e.ViewportHeight + e.ViewportHeight / 5d < e.ExtentHeight) return;
 
             int listCount = list.Items.Count;
 
