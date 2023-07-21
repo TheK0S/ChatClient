@@ -24,19 +24,17 @@ namespace ChatClient
     {
         public static string UserName; 
         bool isConnected;
-        Task reciveMessegeTask;
         Connections connection;
-        ClientConnections clientConnections;
-        MainViewModel viewModel;
-        CancellationTokenSource cancellationTokenSource;
 
         public MainWindow()
         {
             InitializeComponent();
 
-            viewModel = new MainViewModel();
+            connection = new Connections();
 
-            DataContext = viewModel;
+            DataContext = connection;
+
+            isConnected = false;
         }
 
         private void close_Click(object sender, RoutedEventArgs e)
@@ -63,61 +61,35 @@ namespace ChatClient
         private async Task ConnectUser()
         {
             if (isConnected) return;
-            else if (name.Text?.Length < 1) return;
-
-            UserName = name.Text;
-
-            connection = new Connections();
-            await connection.Connect();
-
-            if (connection != null)
+            else if (name.Text?.Length < 1)
             {
-                await Application.Current.Dispatcher.InvokeAsync(async () =>
-                {
-                    await connection.SendMessage("", $"{name.Text} подключился к чату");
-                });
-
-                tbMessage.Text = string.Empty;
+                MessageBox.Show("Введите имя");
+                return;
             }
 
-            reciveMessegeTask = StartReciveMessegeTask();
-
-            name.IsEnabled = false;
-            btnConnectDisconnect.Content = "To Disconnect";
-            btnConnectDisconnect.Background = new SolidColorBrush(Colors.Lime);
+            UserName = name.Text;
+            await connection.Connect();
+            StartReciveMessage();
             isConnected = true;
+
+            ButtonVisualChanged();
         }
 
         private void DisconnectUser()
         {
             if (!isConnected) return;
 
-            StopReciveMessegeTask();
-
             connection.Disconnect();
-
-            clientConnections = null;
-
-            name.IsEnabled = true;
-            btnConnectDisconnect.Content = "To Connect";
-            btnConnectDisconnect.Background = new SolidColorBrush(Colors.Red);
             isConnected = false;
+
+            ButtonVisualChanged();
         }
 
-        private Task StartReciveMessegeTask()
+        private void StartReciveMessage()
         {
-            string ounerName = name.Text;
-            cancellationTokenSource = new CancellationTokenSource();
-            Task task = new Task(async () => await connection.ReceiveMessagesAsync(viewModel.Messages, cancellationTokenSource.Token));
-            task.Start();
-            return task;
+            Task.Run(async () => { await connection.ReceiveMessagesAsync(); });
         }
 
-        private void StopReciveMessegeTask()
-        {
-            cancellationTokenSource?.Cancel();
-            reciveMessegeTask?.Wait();
-        }
 
         private async void tbMessage_KeyDown(object sender, KeyEventArgs e)
         {
@@ -149,6 +121,13 @@ namespace ChatClient
                 if(listCount > 2)
                     list.ScrollIntoView(list.Items[listCount - 1]);
             }
+        }
+
+        private void ButtonVisualChanged()
+        {
+            name.IsEnabled = isConnected? false : true;
+            btnConnectDisconnect.Content = isConnected ? "To Disconnect" : "To Connect";
+            btnConnectDisconnect.Background = isConnected?  new SolidColorBrush(Colors.Lime) : new SolidColorBrush(Colors.Red);          
         }
     }
 }

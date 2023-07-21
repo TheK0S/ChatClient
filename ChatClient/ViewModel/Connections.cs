@@ -19,6 +19,7 @@ namespace ChatClient.ViewModel
         string serverIp = "127.0.0.1";
         int serverPort = 8080;
         EndPoint serverEndPoint;
+        public ObservableCollection<Message> Messeges { get; set; }
 
         public Socket CurrentSocket { get; set; }
 
@@ -26,6 +27,7 @@ namespace ChatClient.ViewModel
         {
             CurrentSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             serverEndPoint = new IPEndPoint(IPAddress.Parse(serverIp), serverPort);
+            Messeges = new ObservableCollection<Message>();
         }
 
         public async Task Connect()
@@ -35,9 +37,8 @@ namespace ChatClient.ViewModel
 
         public void Disconnect()
         {
-            //CurrentSocket.Shutdown(SocketShutdown.Both);
-            //CurrentSocket.Close();
-            //CurrentSocket.Dispose();
+            CurrentSocket.Shutdown(SocketShutdown.Both);
+            CurrentSocket.Close();
         }
 
         public async Task SendMessage(string message, string ownerName)
@@ -49,16 +50,13 @@ namespace ChatClient.ViewModel
             await CurrentSocket.SendToAsync(messageBytes, SocketFlags.None, serverEndPoint);
         }
 
-        public async Task ReceiveMessagesAsync(ObservableCollection<Message> Messages, CancellationToken cancellationToken)
+        public async Task ReceiveMessagesAsync()
         {
             byte[] buffer = new byte[1024];
             int bytesRead;
 
             try
             {
-                if (cancellationToken.IsCancellationRequested)
-                    return;
-
                 while ((bytesRead = await CurrentSocket.ReceiveAsync(buffer, SocketFlags.None)) > 0)
                 {
                     string response = Encoding.UTF8.GetString(buffer, 0, bytesRead);
@@ -69,12 +67,9 @@ namespace ChatClient.ViewModel
                     {
                         Application.Current.Dispatcher.Invoke(() =>
                         {
-                            if (message.Ouner.Contains("подключился к чату") && message.Ouner.Contains(MainWindow.UserName))
-                                return;
-
-                            Messages.Add(message);
+                            Messeges.Add(message);
                         });
-                    }                    
+                    }
                 }
             }
             catch (Exception ex)

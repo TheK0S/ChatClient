@@ -69,7 +69,7 @@
         </Grid.Background>
         <Grid.RowDefinitions>
             <RowDefinition Height="30"/>
-            <RowDefinition Height="30"/>
+            <RowDefinition Height="35"/>
             <RowDefinition/>
             <RowDefinition Height="100"/>
         </Grid.RowDefinitions>
@@ -115,15 +115,15 @@
             <Border.BitmapEffect>
                 <DropShadowBitmapEffect Color="White" ShadowDepth="0" Noise="0" Softness="0.3"/>
             </Border.BitmapEffect>
-            <ListBox x:Name="list" Background="Transparent" ItemsSource="{Binding Messages}" ScrollViewer.ScrollChanged="OnScrollChanged">
+            <ListBox x:Name="list" Background="Transparent" ItemsSource="{Binding Messeges}" ScrollViewer.ScrollChanged="OnScrollChanged">
                 <ListBox.ItemTemplate>
                     <DataTemplate>
                         <Border BorderThickness="0" CornerRadius="10" Background="AliceBlue"
                                 Margin="{Binding Ouner, Converter={StaticResource StringToMarginConverter}}">
-                            <Grid Width="400">
+                            <Grid Width="385">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="0.8*"/>
-                                    <ColumnDefinition Width="0.8*"/>
+                                    <ColumnDefinition Width="0.5*"/>
                                 </Grid.ColumnDefinitions>
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="30"/>
